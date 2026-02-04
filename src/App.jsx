@@ -33,7 +33,96 @@ const ICONS = {
   Briefcase: Briefcase,
   User: User,
   PieChart: PieChart,
-  Zap: Zap
+  Zap: Zap,
+  TrendingUp: TrendingUp,
+  TrendingDown: TrendingDown
+};
+
+const Watchlist = ({ isDarkMode, cardClass, textSecondary }) => {
+  const [watchlistData, setWatchlistData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchWatchlist = async () => {
+    const pairs = ['BTC-BRL', 'ETH-BRL', 'XRP-BRL', 'SOL-BRL'];
+    try {
+      const results = await Promise.all(pairs.map(async (pair) => {
+        const response = await fetch(`https://api.mercadobitcoin.net/api/v4/candles?symbol=${pair}&resolution=1d`);
+        const data = await response.json();
+        
+        // The V4 Candles endpoint returns an array of candles: [timestamp, open, high, low, close, volume]
+        // We take the last candle available
+        if (data && data.length > 0) {
+          const lastCandle = data[data.length - 1];
+          const open = parseFloat(lastCandle[1]);
+          const current = parseFloat(lastCandle[4]);
+          const variation = ((current - open) / open) * 100;
+          
+          return {
+            symbol: pair.split('-')[0],
+            name: pair.split('-')[0] === 'BTC' ? 'Bitcoin' : 
+                  pair.split('-')[0] === 'ETH' ? 'Ethereum' : 
+                  pair.split('-')[0] === 'XRP' ? 'Ripple' : 'Solana',
+            current,
+            variation
+          };
+        }
+        return null;
+      }));
+      setWatchlistData(results.filter(r => r !== null));
+    } catch (error) {
+      console.error("Erro ao buscar watchlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWatchlist();
+    const interval = setInterval(fetchWatchlist, 300000); // 5 minutes
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) return (
+    <div className={`p-6 rounded-2xl border ${cardClass} animate-pulse`}>
+      <div className="h-4 bg-gray-700/20 rounded w-1/4 mb-4"></div>
+      <div className="space-y-3">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-10 bg-gray-700/10 rounded"></div>)}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={`p-6 rounded-2xl border ${cardClass}`}>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="font-bold text-sm uppercase tracking-wider">Mercado Agora</h3>
+        <span className="text-[10px] text-gray-500">24h Variation</span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {watchlistData.map((asset) => (
+          <div key={asset.symbol} className="flex items-center justify-between p-3 rounded-xl bg-gray-500/5 border border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                <img src={`https://s3-symbol-logo.tradingview.com/crypto/XTVC${asset.symbol}--big.svg`} alt="" className="w-5 h-5 object-contain" />
+              </div>
+              <div>
+                <p className="font-bold text-xs">{asset.symbol}</p>
+                <p className="text-[10px] text-gray-500">{asset.name}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="font-mono text-xs font-bold">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(asset.current)}
+              </p>
+              <p className={`text-[10px] font-bold flex items-center justify-end gap-1 ${asset.variation >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                {asset.variation >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                {asset.variation.toFixed(2)}%
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 };
 
 const COLORS = [
@@ -887,6 +976,9 @@ const App = () => {
 
             <div className="w-full max-w-[1800px] mx-auto p-4 md:p-8 space-y-6">
               
+              {/* Crypto Watchlist */}
+              <Watchlist isDarkMode={isDarkMode} cardClass={cardClass} textSecondary={textSecondary} />
+
               {/* Action Buttons */}
               <div className="flex items-center gap-3 flex-wrap">
                 <button 
