@@ -44,9 +44,13 @@ const Watchlist = ({ isDarkMode, cardClass, textSecondary }) => {
 
   const fetchWatchlist = async () => {
     const pairs = ['BTC-BRL', 'ETH-BRL', 'XRP-BRL', 'SOL-BRL'];
+    const now = Math.floor(Date.now() / 1000);
+    const todayStart = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+    
     try {
       const results = await Promise.all(pairs.map(async (pair) => {
-        const response = await fetch(`https://api.mercadobitcoin.net/api/v4/candles?symbol=${pair}&resolution=1d`);
+        // We fetch from the start of the day to now to get the current day's candle
+        const response = await fetch(`https://api.mercadobitcoin.net/api/v4/candles?symbol=${pair}&resolution=1d&from=${todayStart}&to=${now}`);
         const data = await response.json();
         
         // The V4 Candles endpoint returns an array of candles: [timestamp, open, high, low, close, volume]
