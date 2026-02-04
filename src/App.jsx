@@ -578,7 +578,8 @@ const App = () => {
       [id]: {
         id,
         ...data,
-        assets: []
+        assets: [],
+        transactions: []
       }
     }));
     setActivePortfolioId(id);
@@ -646,6 +647,13 @@ const App = () => {
       const currentPortfolio = prev[activePortfolioId];
       if (!currentPortfolio) return prev;
 
+      const newTransaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...data,
+        date: data.date.split('-').reverse().join('/'),
+        type: 'Compra'
+      };
+
       const existingAssetIndex = currentPortfolio.assets.findIndex(a => a.symbol === data.symbol);
       let newAssets = [...currentPortfolio.assets];
 
@@ -676,11 +684,14 @@ const App = () => {
         });
       }
 
+      const currentTransactions = currentPortfolio.transactions || [];
+
       return {
         ...prev,
         [activePortfolioId]: {
           ...currentPortfolio,
-          assets: newAssets
+          assets: newAssets,
+          transactions: [newTransaction, ...currentTransactions]
         }
       };
     });
@@ -947,8 +958,10 @@ const App = () => {
                           <tr className={`text-[10px] uppercase font-bold tracking-widest border-b ${isDarkMode ? 'bg-gray-800/50 text-gray-400 border-gray-700' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
                             <th className="px-6 py-4">Ticker</th>
                             <th className="px-4 py-4">Início</th>
+                            <th className="px-4 py-4 text-right">Qtd.</th>
                             <th className="px-4 py-4 text-center">Alocação</th>
                             <th className="px-4 py-4 text-right">Preço Médio</th>
+                            <th className="px-4 py-4 text-right">Investido</th>
                             <th className="px-4 py-4 text-right">Preço Atual</th>
                             <th className="px-4 py-4 text-right text-blue-500 bg-blue-500/5">Preço Teto</th>
                             <th className="px-4 py-4 text-right">Val. (%)</th>
@@ -962,8 +975,12 @@ const App = () => {
                           <tr className={`${isDarkMode ? 'bg-blue-900/10' : 'bg-blue-50/50'} font-bold`}>
                             <td className="px-6 py-4"><span className="text-xs uppercase">TOTAL</span></td>
                             <td className="px-4 py-4 text-gray-400">—</td>
+                            <td className="px-4 py-4 text-right text-gray-400">—</td>
                             <td className="px-4 py-4 text-center"><span className="text-[10px] px-2 py-1 rounded bg-blue-600 text-white">100%</span></td>
                             <td className="px-4 py-4 text-right text-gray-400">—</td>
+                            <td className="px-4 py-4 text-right text-xs font-bold text-gray-400">
+                              {formatValue(stats.totalInvested)}
+                            </td>
                             <td className="px-4 py-4 text-right text-gray-400">—</td>
                             <td className="px-4 py-4 text-right text-gray-400 bg-blue-500/5">—</td>
                             <td className={`px-4 py-4 text-right text-xs ${stats.totalPLPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
@@ -1004,12 +1021,14 @@ const App = () => {
                                   </div>
                                 </td>
                                 <td className={textSecondary + " px-4 py-4 font-medium text-xs whitespace-nowrap"}>{asset.startDate}</td>
+                                <td className="px-4 py-4 text-right font-mono text-xs">{(showBalances ? asset.quantity.toFixed(asset.quantity < 1 ? 8 : 4) : '••••')}</td>
                                 <td className="px-4 py-4 text-center">
                                   <span className={`text-[10px] font-bold px-2 py-1 rounded ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
                                     {allocation.toFixed(1)}%
                                   </span>
                                 </td>
                                 <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(asset.avgPrice)}</td>
+                                <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(investedTotal)}</td>
                                 <td className="px-4 py-4 text-right font-mono text-xs font-semibold text-blue-400">{formatValue(asset.currentPrice)}</td>
                                 <td className="px-4 py-4 text-right bg-blue-500/5">
                                   <CurrencyInput
@@ -1061,7 +1080,7 @@ const App = () => {
                     </div>
                     
                     <div className="overflow-x-auto max-h-96">
-                      {activeAssets.length === 0 ? (
+                      {(!portfolios[activePortfolioId]?.transactions || portfolios[activePortfolioId].transactions.length === 0) ? (
                         <div className="text-center py-12 text-gray-500">
                           <Briefcase size={32} className="mx-auto mb-2 opacity-30" />
                           <p className="text-sm">Nenhuma transação registrada ainda.</p>
@@ -1079,28 +1098,28 @@ const App = () => {
                             </tr>
                           </thead>
                           <tbody className={`divide-y ${isDarkMode ? 'divide-gray-800' : 'divide-gray-100'}`}>
-                            {activeAssets.map((asset) => (
-                              <tr key={asset.id} className={`text-sm transition-colors ${isDarkMode ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50'}`}>
-                                <td className={`px-6 py-3 font-mono text-xs ${textSecondary}`}>{asset.startDate}</td>
+                            {portfolios[activePortfolioId].transactions.map((transaction) => (
+                              <tr key={transaction.id} className={`text-sm transition-colors ${isDarkMode ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50'}`}>
+                                <td className={`px-6 py-3 font-mono text-xs ${textSecondary}`}>{transaction.date}</td>
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-2">
                                     <div className={`w-6 h-6 rounded-full flex items-center justify-center overflow-hidden border ${isDarkMode ? 'bg-white border-gray-700' : 'bg-white border-gray-200'}`}>
                                       <img 
-                                        src={asset.icon} 
+                                        src={`https://s3-symbol-logo.tradingview.com/crypto/XTVC${transaction.symbol}--big.svg`} 
                                         alt="" 
                                         className="w-4 h-4 object-contain"
-                                        onError={(e) => { e.target.src = "https://via.placeholder.com/16?text=" + asset.symbol }} 
+                                        onError={(e) => { e.target.src = "https://via.placeholder.com/16?text=" + transaction.symbol }} 
                                       />
                                     </div>
-                                    <span className="font-semibold text-xs">{asset.symbol}</span>
+                                    <span className="font-semibold text-xs">{transaction.symbol}</span>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 text-right font-mono text-xs">{asset.quantity.toFixed(8)}</td>
-                                <td className="px-4 py-3 text-right font-mono text-xs">{formatValue(asset.avgPrice)}</td>
-                                <td className="px-4 py-3 text-right font-mono text-xs font-bold">{formatValue(asset.quantity * asset.avgPrice)}</td>
+                                <td className="px-4 py-3 text-right font-mono text-xs">{transaction.quantity.toFixed(8)}</td>
+                                <td className="px-4 py-3 text-right font-mono text-xs">{formatValue(transaction.price)}</td>
+                                <td className="px-4 py-3 text-right font-mono text-xs font-bold">{formatValue(transaction.quantity * transaction.price)}</td>
                                 <td className="px-4 py-3">
                                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${isDarkMode ? 'bg-emerald-900/20 text-emerald-400' : 'bg-emerald-50 text-emerald-600'}`}>
-                                    <TrendingUp size={10} /> Compra
+                                    <TrendingUp size={10} /> {transaction.type}
                                   </span>
                                 </td>
                               </tr>
