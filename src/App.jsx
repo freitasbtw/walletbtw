@@ -53,12 +53,11 @@ const Watchlist = ({ isDarkMode, cardClass, textSecondary }) => {
         const response = await fetch(`https://api.mercadobitcoin.net/api/v4/candles?symbol=${pair}&resolution=1d&from=${todayStart}&to=${now}`);
         const data = await response.json();
         
-        // The V4 Candles endpoint returns an array of candles: [timestamp, open, high, low, close, volume]
-        // We take the last candle available
-        if (data && data.length > 0) {
-          const lastCandle = data[data.length - 1];
-          const open = parseFloat(lastCandle[1]);
-          const current = parseFloat(lastCandle[4]);
+        // The V4 Candles endpoint returns an object with arrays: { t: [], o: [], h: [], l: [], c: [], v: [], s: "ok" }
+        if (data && data.s === 'ok' && data.c && data.c.length > 0) {
+          const lastIdx = data.c.length - 1;
+          const open = parseFloat(data.o[lastIdx]);
+          const current = parseFloat(data.c[lastIdx]);
           const variation = ((current - open) / open) * 100;
           
           return {
