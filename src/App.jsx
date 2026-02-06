@@ -386,7 +386,7 @@ const NewPortfolioModal = ({ isOpen, onClose, onSave, isDarkMode }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className={`w-full max-w-md p-8 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#161B22] border border-gray-700' : 'bg-white'}`}>
+      <div className={`w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-[#161B22] border border-gray-700' : 'bg-white'}`}>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Nova Carteira</h3>
@@ -490,7 +490,7 @@ const TransactionModal = ({ isOpen, onClose, onSave, isDarkMode }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div className={`w-full max-w-lg p-8 rounded-3xl shadow-2xl ${isDarkMode ? 'bg-[#161B22] border border-gray-700' : 'bg-white'}`}>
+      <div className={`w-full max-w-lg p-6 sm:p-8 rounded-3xl shadow-2xl max-h-[90vh] overflow-y-auto ${isDarkMode ? 'bg-[#161B22] border border-gray-700' : 'bg-white'}`}>
         <div className="flex justify-between items-center mb-8">
           <div>
             <h3 className={`text-xl font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Adicionar Transação</h3>
@@ -1046,119 +1046,215 @@ const App = () => {
                     </div>
                   </div>
 
-                  <div className={`rounded-2xl shadow-sm border overflow-hidden ${cardClass}`}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className={`text-[10px] uppercase font-bold tracking-widest border-b ${isDarkMode ? 'bg-gray-800/50 text-gray-400 border-gray-700' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
-                            <th className="px-6 py-4">Ticker</th>
-                            <th className="px-4 py-4">Início</th>
-                            <th className="px-4 py-4 text-right">Qtd.</th>
-                            <th className="px-4 py-4 text-center">Alocação</th>
-                            <th className="px-4 py-4 text-right">Preço Médio</th>
-                            <th className="px-4 py-4 text-right">Investido</th>
-                            <th className="px-4 py-4 text-right">Preço Atual</th>
-                            <th className="px-4 py-4 text-right text-blue-500 bg-blue-500/5">Preço Teto</th>
-                            <th className="px-4 py-4 text-right">Val. (%)</th>
-                            <th className="px-4 py-4 text-right">Val. (R$)</th>
-                            <th className="px-4 py-4 text-right text-emerald-500/80">Pot. (%)</th>
-                            <th className="px-4 py-4 text-right text-emerald-500/80">Pot. (R$)</th>
-                            <th className="px-6 py-4 text-right">Ações</th>
-                          </tr>
-                        </thead>
-                        <tbody className={`divide-y ${isDarkMode ? 'divide-gray-800' : 'divide-gray-50'}`}>
-                          <tr className={`${isDarkMode ? 'bg-blue-900/10' : 'bg-blue-50/50'} font-bold`}>
-                            <td className="px-6 py-4"><span className="text-xs uppercase">TOTAL</span></td>
-                            <td className="px-4 py-4 text-gray-400">—</td>
-                            <td className="px-4 py-4 text-right text-gray-400">—</td>
-                            <td className="px-4 py-4 text-center"><span className="text-[10px] px-2 py-1 rounded bg-blue-600 text-white">100%</span></td>
-                            <td className="px-4 py-4 text-right text-gray-400">—</td>
-                            <td className="px-4 py-4 text-right text-xs font-bold text-gray-400">
-                              {formatValue(stats.totalInvested)}
-                            </td>
-                            <td className="px-4 py-4 text-right text-gray-400">—</td>
-                            <td className="px-4 py-4 text-right text-gray-400 bg-blue-500/5">—</td>
-                            <td className={`px-4 py-4 text-right text-xs ${stats.totalPLPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {showBalances ? `${stats.totalPLPct >= 0 ? '+' : ''}${stats.totalPLPct.toFixed(2)}%` : '••••'}
-                            </td>
-                            <td className={`px-4 py-4 text-right text-xs ${stats.totalPL >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {formatValue(stats.totalPL)}
-                            </td>
-                            <td className={`px-4 py-4 text-right text-xs ${stats.totalPotPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {showBalances ? `${stats.totalPotPct >= 0 ? '+' : ''}${stats.totalPotPct.toFixed(2)}%` : '••••'}
-                            </td>
-                            <td className={`px-4 py-4 text-right text-xs ${stats.totalPotBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                              {formatValue(stats.totalPotBrl)}
-                            </td>
-                            <td className="px-6 py-4 text-gray-400">—</td>
-                          </tr>
-                          {activeAssets.map((asset) => {
-                            const currentTotal = asset.quantity * asset.currentPrice;
-                            const investedTotal = asset.quantity * asset.avgPrice;
-                            const valPct = ((asset.currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
-                            const valBrl = currentTotal - investedTotal;
-                            const potPct = ((asset.ceilingPrice - asset.currentPrice) / asset.currentPrice) * 100;
-                            const allocation = (currentTotal / stats.currentValue) * 100;
+                  <div className={`rounded-2xl shadow-sm border ${cardClass}`}>
+                     <div className="hidden md:block overflow-x-auto">
+                       <table className="w-full text-left border-collapse">
+                         <thead>
+                           <tr className={`text-[10px] uppercase font-bold tracking-widest border-b ${isDarkMode ? 'bg-gray-800/50 text-gray-400 border-gray-700' : 'bg-gray-50 text-gray-400 border-gray-100'}`}>
+                             <th className="px-6 py-4">Ticker</th>
+                             <th className="px-4 py-4">Início</th>
+                             <th className="px-4 py-4 text-right">Qtd.</th>
+                             <th className="px-4 py-4 text-center">Alocação</th>
+                             <th className="px-4 py-4 text-right">Preço Médio</th>
+                             <th className="px-4 py-4 text-right">Investido</th>
+                             <th className="px-4 py-4 text-right">Preço Atual</th>
+                             <th className="px-4 py-4 text-right text-blue-500 bg-blue-500/5">Preço Teto</th>
+                             <th className="px-4 py-4 text-right">Val. (%)</th>
+                             <th className="px-4 py-4 text-right">Val. (R$)</th>
+                             <th className="px-4 py-4 text-right text-emerald-500/80">Pot. (%)</th>
+                             <th className="px-4 py-4 text-right text-emerald-500/80">Pot. (R$)</th>
+                             <th className="px-6 py-4 text-right">Ações</th>
+                           </tr>
+                         </thead>
+                         <tbody className={`divide-y ${isDarkMode ? 'divide-gray-800' : 'divide-gray-50'}`}>
+                           <tr className={`${isDarkMode ? 'bg-blue-900/10' : 'bg-blue-50/50'} font-bold`}>
+                             <td className="px-6 py-4"><span className="text-xs uppercase">TOTAL</span></td>
+                             <td className="px-4 py-4 text-gray-400">—</td>
+                             <td className="px-4 py-4 text-right text-gray-400">—</td>
+                             <td className="px-4 py-4 text-center"><span className="text-[10px] px-2 py-1 rounded bg-blue-600 text-white">100%</span></td>
+                             <td className="px-4 py-4 text-right text-gray-400">—</td>
+                             <td className="px-4 py-4 text-right text-xs font-bold text-gray-400">
+                               {formatValue(stats.totalInvested)}
+                             </td>
+                             <td className="px-4 py-4 text-right text-gray-400">—</td>
+                             <td className="px-4 py-4 text-right text-gray-400 bg-blue-500/5">—</td>
+                             <td className={`px-4 py-4 text-right text-xs ${stats.totalPLPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                               {showBalances ? `${stats.totalPLPct >= 0 ? '+' : ''}${stats.totalPLPct.toFixed(2)}%` : '••••'}
+                             </td>
+                             <td className={`px-4 py-4 text-right text-xs ${stats.totalPL >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                               {formatValue(stats.totalPL)}
+                             </td>
+                             <td className={`px-4 py-4 text-right text-xs ${stats.totalPotPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                               {showBalances ? `${stats.totalPotPct >= 0 ? '+' : ''}${stats.totalPotPct.toFixed(2)}%` : '••••'}
+                             </td>
+                             <td className={`px-4 py-4 text-right text-xs ${stats.totalPotBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                               {formatValue(stats.totalPotBrl)}
+                             </td>
+                             <td className="px-6 py-4 text-gray-400">—</td>
+                           </tr>
+                           {activeAssets.map((asset) => {
+                             const currentTotal = asset.quantity * asset.currentPrice;
+                             const investedTotal = asset.quantity * asset.avgPrice;
+                             const valPct = ((asset.currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
+                             const valBrl = currentTotal - investedTotal;
+                             const potPct = ((asset.ceilingPrice - asset.currentPrice) / asset.currentPrice) * 100;
+                             const allocation = stats.currentValue > 0 ? (currentTotal / stats.currentValue) * 100 : 0;
+ 
+                             return (
+                               <tr key={asset.id} className={`transition-colors text-sm ${isDarkMode ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50/50'}`}>
+                                 <td className="px-6 py-4">
+                                   <div className="flex items-center gap-3">
+                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border ${isDarkMode ? 'bg-white border-gray-700' : 'bg-white border-gray-200'}`}>
+                                       <img 
+                                         src={asset.icon} 
+                                         alt="" 
+                                         className="w-5 h-5 object-contain"
+                                         onError={(e) => { e.target.src = "https://via.placeholder.com/20?text=" + asset.symbol }} 
+                                       />
+                                     </div>
+                                     <span className="font-bold">{asset.symbol}</span>
+                                   </div>
+                                 </td>
+                                 <td className={textSecondary + " px-4 py-4 font-medium text-xs whitespace-nowrap"}>{asset.startDate}</td>
+                                 <td className="px-4 py-4 text-right font-mono text-xs">{(showBalances ? asset.quantity.toFixed(asset.quantity < 1 ? 8 : 4) : '••••')}</td>
+                                 <td className="px-4 py-4 text-center">
+                                   <span className={`text-[10px] font-bold px-2 py-1 rounded ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                     {allocation.toFixed(1)}%
+                                   </span>
+                                 </td>
+                                 <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(asset.avgPrice)}</td>
+                                 <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(investedTotal)}</td>
+                                 <td className="px-4 py-4 text-right font-mono text-xs font-semibold text-blue-400">{formatValue(asset.currentPrice)}</td>
+                                 <td className="px-4 py-4 text-right bg-blue-500/5">
+                                   <CurrencyInput
+                                     value={asset.ceilingPrice}
+                                     onChange={(newValue) => handleCeilingChange(asset.id, newValue)}
+                                     className="w-28 bg-transparent border-b border-dashed border-blue-400/30 text-right font-mono text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-500 transition-colors p-1"
+                                   />
+                                 </td>
+                                 <td className={`px-4 py-4 text-right font-bold text-xs ${valPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {showBalances ? `${valPct >= 0 ? '+' : ''}${valPct.toFixed(2)}%` : '••••'}
+                                 </td>
+                                 <td className={`px-4 py-4 text-right font-mono text-xs font-bold ${valBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {formatValue(valBrl)}
+                                 </td>
+                                 <td className={`px-4 py-4 text-right font-bold text-xs ${potPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {showBalances ? `${potPct >= 0 ? '+' : ''}${potPct.toFixed(2)}%` : '••••'}
+                                 </td>
+                                 <td className={`px-4 py-4 text-right font-mono text-xs font-bold ${(asset.quantity * (asset.ceilingPrice - asset.currentPrice)) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {formatValue(asset.quantity * (asset.ceilingPrice - asset.currentPrice))}
+                                 </td>
+                                 <td className="px-6 py-4 text-right">
+                                   <button 
+                                     onClick={() => handleRemoveAsset(asset.id)}
+                                     className="p-1 text-gray-400 hover:text-rose-500 transition-colors"
+                                   >
+                                     <Trash2 size={16} />
+                                   </button>
+                                 </td>
+                               </tr>
+                             );
+                         })}
+                         </tbody>
+                       </table>
+                     </div>
 
-                            return (
-                              <tr key={asset.id} className={`transition-colors text-sm ${isDarkMode ? 'hover:bg-gray-800/30' : 'hover:bg-gray-50/50'}`}>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center overflow-hidden border ${isDarkMode ? 'bg-white border-gray-700' : 'bg-white border-gray-200'}`}>
-                                      <img 
-                                        src={asset.icon} 
-                                        alt="" 
-                                        className="w-5 h-5 object-contain"
-                                        onError={(e) => { e.target.src = "https://via.placeholder.com/20?text=" + asset.symbol }} 
-                                      />
-                                    </div>
-                                    <span className="font-bold">{asset.symbol}</span>
-                                  </div>
-                                </td>
-                                <td className={textSecondary + " px-4 py-4 font-medium text-xs whitespace-nowrap"}>{asset.startDate}</td>
-                                <td className="px-4 py-4 text-right font-mono text-xs">{(showBalances ? asset.quantity.toFixed(asset.quantity < 1 ? 8 : 4) : '••••')}</td>
-                                <td className="px-4 py-4 text-center">
-                                  <span className={`text-[10px] font-bold px-2 py-1 rounded ${isDarkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
-                                    {allocation.toFixed(1)}%
-                                  </span>
-                                </td>
-                                <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(asset.avgPrice)}</td>
-                                <td className="px-4 py-4 text-right font-mono text-xs">{formatValue(investedTotal)}</td>
-                                <td className="px-4 py-4 text-right font-mono text-xs font-semibold text-blue-400">{formatValue(asset.currentPrice)}</td>
-                                <td className="px-4 py-4 text-right bg-blue-500/5">
-                                  <CurrencyInput
-                                    value={asset.ceilingPrice}
-                                    onChange={(newValue) => handleCeilingChange(asset.id, newValue)}
-                                    className="w-28 bg-transparent border-b border-dashed border-blue-400/30 text-right font-mono text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-500 transition-colors p-1"
-                                  />
-                                </td>
-                                <td className={`px-4 py-4 text-right font-bold text-xs ${valPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                  {showBalances ? `${valPct >= 0 ? '+' : ''}${valPct.toFixed(2)}%` : '••••'}
-                                </td>
-                                <td className={`px-4 py-4 text-right font-mono text-xs font-bold ${valBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                  {formatValue(valBrl)}
-                                </td>
-                                <td className={`px-4 py-4 text-right font-bold text-xs ${potPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                  {showBalances ? `${potPct >= 0 ? '+' : ''}${potPct.toFixed(2)}%` : '••••'}
-                                </td>
-                                <td className={`px-4 py-4 text-right font-mono text-xs font-bold ${(asset.quantity * (asset.ceilingPrice - asset.currentPrice)) >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                  {formatValue(asset.quantity * (asset.ceilingPrice - asset.currentPrice))}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <button 
-                                    onClick={() => handleRemoveAsset(asset.id)}
-                                    className="p-1 text-gray-400 hover:text-rose-500 transition-colors"
-                                  >
-                                    <Trash2 size={16} />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                        })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
+                     <div className="md:hidden p-4 space-y-4">
+                       {activeAssets.map((asset) => {
+                         const currentTotal = asset.quantity * asset.currentPrice;
+                         const investedTotal = asset.quantity * asset.avgPrice;
+                         const valPct = ((asset.currentPrice - asset.avgPrice) / asset.avgPrice) * 100;
+                         const valBrl = currentTotal - investedTotal;
+                         const potPct = ((asset.ceilingPrice - asset.currentPrice) / asset.currentPrice) * 100;
+                         const allocation = stats.currentValue > 0 ? (currentTotal / stats.currentValue) * 100 : 0;
+                         const potentialBrl = asset.quantity * (asset.ceilingPrice - asset.currentPrice);
+
+                         return (
+                           <div 
+                             key={asset.id} 
+                             className={`border rounded-xl p-4 space-y-3 ${isDarkMode ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-200'}`}
+                           >
+                             <div className="flex items-start justify-between gap-3">
+                               <div className="flex items-center gap-3">
+                                 <div className={`w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border ${isDarkMode ? 'bg-white border-gray-700' : 'bg-white border-gray-200'}`}>
+                                   <img 
+                                     src={asset.icon} 
+                                     alt="" 
+                                     className="w-6 h-6 object-contain"
+                                     onError={(e) => { e.target.src = "https://via.placeholder.com/24?text=" + asset.symbol }} 
+                                   />
+                                 </div>
+                                 <div>
+                                   <p className="font-bold text-sm">{asset.symbol}</p>
+                                   <p className={`text-[11px] ${textSecondary}`}>{asset.startDate}</p>
+                                 </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <span className={`text-[10px] font-bold px-2 py-1 rounded ${isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-600 border border-gray-200'}`}>
+                                   {allocation.toFixed(1)}%
+                                 </span>
+                                 <button 
+                                   onClick={() => handleRemoveAsset(asset.id)}
+                                   className="p-1.5 rounded-lg text-gray-400 hover:text-rose-500 transition-colors"
+                                 >
+                                   <Trash2 size={16} />
+                                 </button>
+                               </div>
+                             </div>
+
+                             <div className="grid grid-cols-2 gap-3 text-xs">
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Quantidade</p>
+                                 <p className="font-mono font-semibold">{showBalances ? asset.quantity.toFixed(asset.quantity < 1 ? 8 : 4) : '••••'}</p>
+                               </div>
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Investido</p>
+                                 <p className="font-mono font-semibold">{formatValue(investedTotal)}</p>
+                               </div>
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Preço Médio</p>
+                                 <p className="font-mono font-semibold">{formatValue(asset.avgPrice)}</p>
+                               </div>
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Preço Atual</p>
+                                 <p className="font-mono font-semibold text-blue-400">{formatValue(asset.currentPrice)}</p>
+                               </div>
+                             </div>
+
+                             <div className="space-y-2">
+                               <p className="text-[11px] font-bold text-blue-500">Preço Teto (R$)</p>
+                               <CurrencyInput
+                                 value={asset.ceilingPrice}
+                                 onChange={(newValue) => handleCeilingChange(asset.id, newValue)}
+                                 className={`w-full bg-transparent border rounded-lg p-2 text-right font-mono text-sm font-bold ${isDarkMode ? 'border-blue-500/40 text-blue-400 focus:border-blue-400' : 'border-blue-200 text-blue-600 focus:border-blue-500'}`}
+                               />
+                             </div>
+
+                             <div className="grid grid-cols-2 gap-3 text-xs">
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Valorização</p>
+                                 <p className={`font-bold ${valPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {showBalances ? `${valPct >= 0 ? '+' : ''}${valPct.toFixed(2)}%` : '••••'}
+                                 </p>
+                                 <p className={`font-mono ${valBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {formatValue(valBrl)}
+                                 </p>
+                               </div>
+                               <div>
+                                 <p className={textSecondary + " text-[11px]"}>Potencial</p>
+                                 <p className={`font-bold ${potPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {showBalances ? `${potPct >= 0 ? '+' : ''}${potPct.toFixed(2)}%` : '••••'}
+                                 </p>
+                                 <p className={`font-mono ${potentialBrl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                   {formatValue(potentialBrl)}
+                                 </p>
+                               </div>
+                             </div>
+                           </div>
+                         );
+                       })}
+                     </div>
+                   </div>
 
                   {/* Transaction Log */}
                   <div className={`rounded-2xl shadow-sm border ${cardClass} overflow-hidden`}>
